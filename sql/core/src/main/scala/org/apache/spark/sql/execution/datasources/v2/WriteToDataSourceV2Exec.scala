@@ -426,8 +426,9 @@ object DataWritingSparkTask extends Logging {
     val stageAttempt = context.stageAttemptNumber()
     val partId = context.partitionId()
     val taskId = context.taskAttemptId()
+    val taskIndex = context.getTaskIndex()
     val attemptId = context.attemptNumber()
-    val dataWriter = writerFactory.createWriter(partId, taskId)
+    val dataWriter = writerFactory.createWriter(partId, taskId, taskIndex)
 
     var count = 0L
     // write the data and commit this writer.

@@ -87,6 +87,13 @@ abstract class TaskContext extends Serializable {
 
   // Note: getters in this class are defined with parentheses to maintain backward compatibility.
 
+  private var taskIndex: Int = _
+
+  def getTaskIndex(): Int = taskIndex
+
+  def setTaskIndex(taskInd : Int): Unit = {
+    this.taskIndex = taskInd
+  }
   /**
    * Returns true if the task has completed.
    */

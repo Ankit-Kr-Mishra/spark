@@ -308,6 +308,7 @@ private[spark] class Executor(
     extends Runnable {
 
     val taskId = taskDescription.taskId
+    val taskIndex = taskDescription.index
     val threadName = s"Executor task launch worker for task $taskId"
     private val taskName = taskDescription.name
 
@@ -444,6 +445,7 @@ private[spark] class Executor(
         val value = Utils.tryWithSafeFinally {
           val res = task.run(
             taskAttemptId = taskId,
+            taskIndex = taskIndex,
             attemptNumber = taskDescription.attemptNumber,
             metricsSystem = env.metricsSystem,
             resources = taskDescription.resources)

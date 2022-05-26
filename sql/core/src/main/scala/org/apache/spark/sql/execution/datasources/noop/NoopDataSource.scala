@@ -65,7 +65,7 @@ private[noop] object NoopBatchWrite extends BatchWrite {
 }
 
 private[noop] object NoopWriterFactory extends DataWriterFactory {
-  override def createWriter(partitionId: Int, taskId: Long): DataWriter[InternalRow] = NoopWriter
+  override def createWriter(partitionId: Int, taskId: Long, taskIndex: Int): DataWriter[InternalRow] = NoopWriter
 }
 
 private[noop] object NoopWriter extends DataWriter[InternalRow] {
@@ -82,8 +82,5 @@ private[noop] object NoopStreamingWrite extends StreamingWrite {
 }
 
 private[noop] object NoopStreamingDataWriterFactory extends StreamingDataWriterFactory {
-  override def createWriter(
-      partitionId: Int,
-      taskId: Long,
-      epochId: Long): DataWriter[InternalRow] = NoopWriter
+  override def createWriter(partitionId: Int, taskId: Long, epochId: Long, taskIndex: Int): DataWriter[InternalRow] = NoopWriter
 }

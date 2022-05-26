@@ -61,7 +61,7 @@ private case class KafkaBatchWriterFactory(
     schema: StructType)
   extends DataWriterFactory {
 
-  override def createWriter(partitionId: Int, taskId: Long): DataWriter[InternalRow] = {
+  override def createWriter(partitionId: Int, taskId: Long, taskIndex: Int): DataWriter[InternalRow] = {
     new KafkaDataWriter(topic, producerParams, schema.toAttributes)
   }
 }

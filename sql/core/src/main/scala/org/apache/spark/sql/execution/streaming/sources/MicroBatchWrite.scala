@@ -48,7 +48,7 @@ class MicroBatchWrite(eppchId: Long, val writeSupport: StreamingWrite) extends B
 class MicroBatchWriterFactory(epochId: Long, streamingWriterFactory: StreamingDataWriterFactory)
   extends DataWriterFactory {
 
-  override def createWriter(partitionId: Int, taskId: Long): DataWriter[InternalRow] = {
-    streamingWriterFactory.createWriter(partitionId, taskId, epochId)
+  override def createWriter(partitionId: Int, taskId: Long, taskIndex: Int): DataWriter[InternalRow] = {
+    streamingWriterFactory.createWriter(partitionId, taskId, epochId, taskIndex)
   }
 }

@@ -519,7 +519,7 @@ private class BufferedRowsReader(partition: BufferedRows) extends PartitionReade
 }
 
 private object BufferedRowsWriterFactory extends DataWriterFactory {
-  override def createWriter(partitionId: Int, taskId: Long): DataWriter[InternalRow] = {
+  override def createWriter(partitionId: Int, taskId: Long, taskIndex: Int): DataWriter[InternalRow] = {
     new BufferWriter
   }
 }

@@ -44,8 +44,7 @@ public interface StreamingDataWriterFactory extends Serializable {
    *
    * If this method fails (by throwing an exception), the corresponding Spark write task would fail
    * and get retried until hitting the maximum retry times.
-   *
-   * @param partitionId A unique id of the RDD partition that the returned writer will process.
+   *  @param partitionId A unique id of the RDD partition that the returned writer will process.
    *                    Usually Spark processes many RDD partitions at the same time,
    *                    implementations should use the partition id to distinguish writers for
    *                    different partitions.
@@ -53,7 +52,7 @@ public interface StreamingDataWriterFactory extends Serializable {
    *               multiple tasks for the same partition (due to speculation or task failures,
    *               for example).
    * @param epochId A monotonically increasing id for streaming queries that are split in to
-   *                discrete periods of execution.
+   * @param taskIndex
    */
-  DataWriter<InternalRow> createWriter(int partitionId, long taskId, long epochId);
+  DataWriter<InternalRow> createWriter(int partitionId, long taskId, long epochId, int taskIndex);
 }

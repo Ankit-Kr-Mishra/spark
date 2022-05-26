@@ -70,6 +70,14 @@ private[spark] abstract class Task[T](
   @transient lazy val metrics: TaskMetrics =
     SparkEnv.get.closureSerializer.newInstance().deserialize(ByteBuffer.wrap(serializedTaskMetrics))
 
+
+  final def run(
+                 taskAttemptId: Long,
+                 attemptNumber: Int,
+                 metricsSystem: MetricsSystem,
+                 resources: Map[String, ResourceInformation]): T = {
+    run(taskAttemptId, -1, attemptNumber, metricsSystem, resources)
+  }
   /**
    * Called by [[org.apache.spark.executor.Executor]] to run this task.
    *
@@ -80,6 +88,7 @@ private[spark] abstract class Task[T](
    */
   final def run(
       taskAttemptId: Long,
+      taskIndex: Int,
       attemptNumber: Int,
       metricsSystem: MetricsSystem,
       resources: Map[String, ResourceInformation]): T = {
@@ -97,6 +106,8 @@ private[spark] abstract class Task[T](
       metricsSystem,
       metrics,
       resources)
+
+    taskContext.setTaskIndex(taskIndex)
 
     context = if (isBarrier) {
       new BarrierTaskContext(taskContext)

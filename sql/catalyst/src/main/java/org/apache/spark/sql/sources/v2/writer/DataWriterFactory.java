@@ -42,14 +42,13 @@ public interface DataWriterFactory extends Serializable {
    *
    * If this method fails (by throwing an exception), the corresponding Spark write task would fail
    * and get retried until hitting the maximum retry times.
-   *
-   * @param partitionId A unique id of the RDD partition that the returned writer will process.
+   *  @param partitionId A unique id of the RDD partition that the returned writer will process.
    *                    Usually Spark processes many RDD partitions at the same time,
    *                    implementations should use the partition id to distinguish writers for
    *                    different partitions.
    * @param taskId The task id returned by {@link TaskContext#taskAttemptId()}. Spark may run
    *               multiple tasks for the same partition (due to speculation or task failures,
-   *               for example).
+   * @param taskIndex
    */
-  DataWriter<InternalRow> createWriter(int partitionId, long taskId);
+  DataWriter<InternalRow> createWriter(int partitionId, long taskId, int taskIndex);
 }

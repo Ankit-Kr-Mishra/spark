@@ -30,7 +30,7 @@ import org.apache.spark.util.SerializableConfiguration
 case class FileWriterFactory (
     description: WriteJobDescription,
     committer: FileCommitProtocol) extends DataWriterFactory {
-  override def createWriter(partitionId: Int, realTaskId: Long): DataWriter[InternalRow] = {
+  override def createWriter(partitionId: Int, realTaskId: Long, taskIndex: Int): DataWriter[InternalRow] = {
     val taskAttemptContext = createTaskAttemptContext(partitionId)
     committer.setupTask(taskAttemptContext)
     if (description.partitionColumns.isEmpty) {

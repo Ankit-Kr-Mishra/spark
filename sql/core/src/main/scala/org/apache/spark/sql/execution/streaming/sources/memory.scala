@@ -159,17 +159,12 @@ class MemoryStreamingWrite(
 case class MemoryWriterFactory(schema: StructType)
   extends DataWriterFactory with StreamingDataWriterFactory {
 
-  override def createWriter(
-      partitionId: Int,
-      taskId: Long): DataWriter[InternalRow] = {
+  override def createWriter(partitionId: Int, taskId: Long, taskIndex: Int): DataWriter[InternalRow] = {
     new MemoryDataWriter(partitionId, schema)
   }
 
-  override def createWriter(
-      partitionId: Int,
-      taskId: Long,
-      epochId: Long): DataWriter[InternalRow] = {
-    createWriter(partitionId, taskId)
+  override def createWriter(partitionId: Int, taskId: Long, epochId: Long, taskIndex: Int): DataWriter[InternalRow] = {
+    createWriter(partitionId, taskId, -1)
   }
 }
 

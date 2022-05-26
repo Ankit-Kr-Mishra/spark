@@ -230,13 +230,10 @@ private case class KafkaTransactionStreamWriterFactory(
     transactionSuffix: String)
   extends StreamingDataWriterFactory {
 
-  override def createWriter(
-      partitionId: Int,
-      taskId: Long,
-      epochId: Long): DataWriter[InternalRow] = {
+  override def createWriter(partitionId: Int, taskId: Long, epochId: Long, taskIndex: Int): DataWriter[InternalRow] = {
     val executorId = SparkEnv.get.executorId
-    val taskIndex = TaskIndexGenerator.getTaskIndex(transactionSuffix)
-    val transactionalId = ProducerTransactionMetaData.toTransactionId(executorId, taskIndex,
+    val taskInd = TaskIndexGenerator.getTaskIndex(transactionSuffix)
+    val transactionalId = ProducerTransactionMetaData.toTransactionId(executorId, taskInd,
       transactionSuffix)
     producerParams.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, transactionalId)
     new KafkaTransactionDataWriter(topic, producerParams, schema.toAttributes)
@@ -259,11 +256,8 @@ private case class KafkaStreamTransactionResumeWriterFactory(
     metaDatas: Array[ProducerTransactionMetaData])
   extends StreamingDataWriterFactory {
 
-  override def createWriter(
-      partitionId: Int,
-      taskId: Long,
-      epochId: Long): DataWriter[InternalRow] = {
-    val metaData: ProducerTransactionMetaData = metaDatas(taskId.toInt)
+  override def createWriter(partitionId: Int, taskId: Long, epochId: Long, taskIndex: Int): DataWriter[InternalRow] = {
+    val metaData: ProducerTransactionMetaData = metaDatas(taskIndex)
     producerParams.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, metaData.transactionalId)
     new KafkaTransactionResumeDataWriter(topic, producerParams, schema.toAttributes, metaData)
   }
@@ -283,10 +277,7 @@ private case class KafkaStreamWriterFactory(
     schema: StructType)
   extends StreamingDataWriterFactory {
 
-  override def createWriter(
-      partitionId: Int,
-      taskId: Long,
-      epochId: Long): DataWriter[InternalRow] = {
+  override def createWriter(partitionId: Int, taskId: Long, epochId: Long, taskIndex: Int): DataWriter[InternalRow] = {
     new KafkaDataWriter(topic, producerParams, schema.toAttributes)
   }
 }

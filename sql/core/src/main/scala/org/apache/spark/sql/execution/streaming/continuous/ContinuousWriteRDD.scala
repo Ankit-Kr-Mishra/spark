@@ -51,10 +51,7 @@ class ContinuousWriteRDD(var prev: RDD[InternalRow], writerFactory: StreamingDat
       Utils.tryWithSafeFinallyAndFailureCallbacks(block = {
         try {
           val dataIterator = prev.compute(split, context)
-          dataWriter = writerFactory.createWriter(
-            context.partitionId(),
-            context.taskAttemptId(),
-            EpochTracker.getCurrentEpoch.get)
+          dataWriter = writerFactory.createWriter(context.partitionId(), context.taskAttemptId(), EpochTracker.getCurrentEpoch.get, -1)
           while (dataIterator.hasNext) {
             dataWriter.write(dataIterator.next())
           }

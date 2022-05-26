@@ -32,10 +32,7 @@ import org.apache.spark.sql.sources.v2.writer.streaming.StreamingDataWriterFacto
  * for production-quality sinks. It's intended for use in tests.
  */
 case object PackedRowWriterFactory extends StreamingDataWriterFactory {
-  override def createWriter(
-      partitionId: Int,
-      taskId: Long,
-      epochId: Long): DataWriter[InternalRow] = {
+  override def createWriter(partitionId: Int, taskId: Long, epochId: Long, taskIndex: Int): DataWriter[InternalRow] = {
     new PackedRowDataWriter()
   }
 }

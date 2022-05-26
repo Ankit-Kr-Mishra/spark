@@ -108,10 +108,7 @@ case class ForeachWriterFactory[T](
     writer: ForeachWriter[T],
     rowConverter: InternalRow => T)
   extends StreamingDataWriterFactory {
-  override def createWriter(
-      partitionId: Int,
-      taskId: Long,
-      epochId: Long): ForeachDataWriter[T] = {
+  override def createWriter(partitionId: Int, taskId: Long, epochId: Long, taskIndex: Int): ForeachDataWriter[T] = {
     new ForeachDataWriter(writer, rowConverter, partitionId, epochId)
   }
 }

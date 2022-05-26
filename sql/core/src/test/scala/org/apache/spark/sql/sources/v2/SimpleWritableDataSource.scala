@@ -209,9 +209,7 @@ private[v2] object SimpleCounter {
 class CSVDataWriterFactory(path: String, jobId: String, conf: SerializableConfiguration)
   extends DataWriterFactory {
 
-  override def createWriter(
-      partitionId: Int,
-      taskId: Long): DataWriter[InternalRow] = {
+  override def createWriter(partitionId: Int, taskId: Long, taskIndex: Int): DataWriter[InternalRow] = {
     val jobPath = new Path(new Path(path, "_temporary"), jobId)
     val filePath = new Path(jobPath, s"$jobId-$partitionId-$taskId")
     val fs = filePath.getFileSystem(conf.value)
