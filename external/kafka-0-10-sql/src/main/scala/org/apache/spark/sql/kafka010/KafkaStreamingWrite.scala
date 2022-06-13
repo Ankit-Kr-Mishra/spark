@@ -284,7 +284,7 @@ private case class KafkaStreamWriterFactory(
 
 private[kafka010] object KafkaTransactionStreamingWrite {
   private val METADATA_DIR = "_kafka_producer_transaction_metadata"
-  private val PRODUCER_CREATE_FACTOR_CONFIG = "producerCreateFactor"
+  private val PRODUCER_CREATE_FACTOR_CONFIG = "producer.create.factor"
   private val DEFAULT_PRODUCER_CREATE_FACTOR = 10
 
   // equals to the default value of config transaction.max.timeout.ms in Kafka broker
