@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.kafka.common.errors.TransactionCoordinatorFencedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
@@ -145,8 +146,8 @@ public class InternalKafkaProducer<K, V> implements Producer<K, V> {
   public void resumeTransaction(long producerId, short epoch) {
     Preconditions.checkState(producerId >= 0 && epoch >= 0,
         "Incorrect values for producerId %s and epoch %s", producerId, epoch);
-    LOG.info("Attempting to resume transaction {} with producerId {} and epoch {}",
-        transactionalId, producerId, epoch);
+    LOG.debug(String.format("Attempting to resume transaction %s with producerId %s and epoch %s",
+        transactionalId, producerId, epoch));
 
     Object transactionManager = getValue(kafkaProducer, "transactionManager");
     synchronized (transactionManager) {
@@ -199,7 +200,8 @@ public class InternalKafkaProducer<K, V> implements Producer<K, V> {
         Class<Enum> cl = (Class<Enum>) Class.forName(enumClassName);
         return Enum.valueOf(cl, enumName);
       } catch (ClassNotFoundException e) {
-        throw new RuntimeException("Incompatible KafkaProducer version", e);
+        //changed from RunTimeException to catch this specific error instead of generic runtime Exception
+        throw new TransactionCoordinatorFencedException("Incompatible KafkaProducer version", e);
       }
     }
     return null;

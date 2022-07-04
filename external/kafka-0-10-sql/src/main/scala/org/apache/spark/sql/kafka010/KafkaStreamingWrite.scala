@@ -19,15 +19,16 @@ package org.apache.spark.sql.kafka010
 
 import java.{util => ju}
 import java.time.Duration
-
 import org.apache.hadoop.fs.Path
 import org.apache.kafka.clients.producer.ProducerConfig
-
 import org.apache.spark.SparkEnv
 import org.apache.spark.internal.Logging
+import org.apache.spark.internal.config.ConfigEntry
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.execution.streaming.OffsetSeqLog
+import org.apache.spark.sql.internal.SQLConf.buildConf
+import org.apache.spark.sql.kafka010.KafkaTransactionStreamingWrite.TEST_KILL_BEFORE_COMMIT
 import org.apache.spark.sql.kafka010.KafkaWriter.validateQuery
 import org.apache.spark.sql.sources.v2.writer._
 import org.apache.spark.sql.sources.v2.writer.streaming.{StreamingDataWriterFactory, StreamingWrite}
@@ -87,15 +88,33 @@ private[kafka010] class KafkaTransactionStreamingWrite(
     }
   }
 
+  def hasTransactionExpired(messages: Array[WriterCommitMessage]): Boolean ={
+    messages.foreach( msg => {
+      if(msg.isInstanceOf[ExpiredTransactionCommitMessage]){
+        return true
+      }
+    })
+    false
+  }
   override def commit(epochId: Long, messages: Array[WriterCommitMessage]): Unit = {
+    if(hasTransactionExpired(messages)){
+      metaDataLog.purgeAfter(epochId - 1)
+      //can return here instead of exiting to achieve at most once semantics??
+      println(s"Exiting after removing entry for batch $epochId from _kafka_producer_transaction_metadata directory")
+      System.exit(0)
+    }
     val needCommit = messages.nonEmpty && messages.head.isInstanceOf[ProducerTransactionMetaData]
     if (needCommit) {
       val metaDatas = messages.map(_.asInstanceOf[ProducerTransactionMetaData])
       metaDataLog.add(epochId, metaDatas)
-
+      val sparkSession = SparkSession.getActiveSession.get
+      val killBeforeCommitting = sparkSession.sessionState.conf.getConf(TEST_KILL_BEFORE_COMMIT)
+      if(killBeforeCommitting){
+        println("Exiting before committing transactions for testing purpose")
+        System.exit(0)
+      }
       val config = new ju.HashMap[String, Object]()
       config.putAll(producerParams)
-      val sparkSession = SparkSession.getActiveSession.get
       val aliveExecutors = KafkaTransactionStreamingWrite.getExecutors(sparkSession)
       val executorNum = if (aliveExecutors.nonEmpty) aliveExecutors.size else 1
       val executorMetaData = metaDatas.groupBy(
@@ -315,4 +334,11 @@ private[kafka010] object KafkaTransactionStreamingWrite {
     val blockManager = sparkSession.sparkContext.env.blockManager
     blockManager.master.getPeers(blockManager.blockManagerId)
   }
+
+  val TEST_KILL_BEFORE_COMMIT: ConfigEntry[Boolean] =
+    buildConf("spark.sql.test.kill.before.commit")
+      .internal()
+      .doc("If Application needs to be killed before committing transactions for testing purpose")
+      .booleanConf
+      .createWithDefault(false)
 }

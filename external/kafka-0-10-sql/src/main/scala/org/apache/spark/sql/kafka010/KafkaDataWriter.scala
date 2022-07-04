@@ -19,9 +19,8 @@ package org.apache.spark.sql.kafka010
 
 import java.{util => ju}
 import java.util.concurrent.atomic.AtomicInteger
-
 import com.google.common.cache._
-
+import org.apache.kafka.common.errors.{InvalidPidMappingException, ProducerFencedException, TransactionCoordinatorFencedException}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.Attribute
 import org.apache.spark.sql.sources.v2.writer._
@@ -80,6 +79,11 @@ private[kafka010] case object ProducerTransactionMetaData {
     s"$executorId-$taskIndex"
   }
 }
+
+/**
+Commit message conveying that the transaction has expired
+ */
+private[kafka010] case class ExpiredTransactionCommitMessage() extends WriterCommitMessage
 
 /**
  * A [[DataWriter]] for Kafka transactional writing. One data writer will be created
@@ -158,9 +162,15 @@ private[kafka010] class KafkaTransactionResumeDataWriter(
   def write(row: InternalRow): Unit = {}
 
   def commit(): WriterCommitMessage = {
-    producer.resumeTransaction(metaData.producerId, metaData.epoch)
-    producer.commitTransaction()
-
+    try {
+      producer.resumeTransaction(metaData.producerId, metaData.epoch)
+      producer.commitTransaction()
+    } catch {
+      case e @ (_ : InvalidPidMappingException | _ : ProducerFencedException | _ : TransactionCoordinatorFencedException) =>{
+        println(s"Seems like transaction has expired...${e.printStackTrace()}")
+        return ExpiredTransactionCommitMessage()
+      }
+    }
     EmptyCommitMessage
   }
 
